@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+
+  tasks:
+  - name: Pull backgrounds from Git
+    git:
+      repo: 'https://github.com/lhoweth/shared.git'
+      dest: ~/Pictures/Backgrounds
+      update: yes
+      force: yes
