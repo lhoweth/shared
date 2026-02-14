@@ -9,6 +9,9 @@ export ZSH="$HOME/.oh-my-zsh"
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 # ZSH_THEME="robbyrussell"
+# ZSH_THEME="bureau"
+# ZSH_THEME="avit"
+# ZSH_THEME="steeef"
 ZSH_THEME="agnoster"
 
 # Set list of themes to pick from when loading at random
@@ -71,11 +74,7 @@ ZSH_THEME="agnoster"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(
-        git
-        zsh-autosuggestions
-        zsh-syntax-highlighting
-        )
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -107,8 +106,28 @@ source $ZSH/oh-my-zsh.sh
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias vi="vim"
-alias fzf="fzf --preview 'bat --color=always {}'"
+alias fzf="fzf --preview 'mime=\$(file --mime-type -b {}); if [[ \$mime == image/* ]]; then chafa -s 50x30 {}; else bat --color=always --style=numbers {} 2>/dev/null || cat {}; fi'"
 
-# startup items
+# launch at start
 fastfetch
+
+# --- Smart FZF Previewer ---
+fzf_preview() {
+    local file=$1
+    # Check if 'file' command exists (installed by script)
+    local mime=$(file --mime-type -b "$file")
+
+    if [[ $mime == image/* ]]; then
+        chafa -s 50x30 "$file"
+    elif [[ $mime == text/* || $mime == "application/json" ]]; then
+        # Handle Ubuntu 'batcat' vs standard 'bat'
+        if command -v batcat >/dev/null; then
+            batcat --color=always --style=numbers "$file"
+        else
+            bat --color=always --style=numbers "$file"
+        fi
+    else
+        echo "Binary/Unknown: $mime"
+    fi
+}
+alias fzf="fzf --preview 'fzf_preview {}'"
