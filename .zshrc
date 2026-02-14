@@ -106,27 +106,7 @@ source $ZSH/oh-my-zsh.sh
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
+alias fzf="fzf --preview 'printf \"\033[2J\033_Gi=1,a=d\033\\\\\"; mime=\$(file --mime-type -b {}); if [[ \$mime == image/* ]]; then chafa -s 50x30 {}; else bat --color=always --style=numbers {} 2>/dev/null || cat {}; fi'"
 
 # launch at start
 fastfetch
-
-# --- Smart FZF Previewer ---
-fzf_preview() {
-    local file=$1
-    # Check if 'file' command exists (installed by script)
-    local mime=$(file --mime-type -b "$file")
-
-    if [[ $mime == image/* ]]; then
-        chafa -s 50x30 "$file"
-    elif [[ $mime == text/* || $mime == "application/json" ]]; then
-        # Handle Ubuntu 'batcat' vs standard 'bat'
-        if command -v batcat >/dev/null; then
-            batcat --color=always --style=numbers "$file"
-        else
-            bat --color=always --style=numbers "$file"
-        fi
-    else
-        echo "Binary/Unknown: $mime"
-    fi
-}
-alias fzf="fzf --preview 'fzf_preview {}'"
