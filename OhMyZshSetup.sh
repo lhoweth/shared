@@ -67,12 +67,15 @@ sed -i 's/^ZSH_THEME=".*"/ZSH_THEME="agnoster"/' "$HOME/.zshrc"
 sed -i '' 's/^plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting zsh-completions)/' "$HOME/.zshrc" 2>/dev/null || \
 sed -i 's/^plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting zsh-completions)/' "$HOME/.zshrc"
 
-# 5. Injecting the Working FZF Alias
-if ! grep -q "alias fzf=" "$HOME/.zshrc"; then
+# 5. Injecting the Working FZF Alias & Git Sync Alias
+if ! grep -q "alias dotsync=" "$HOME/.zshrc"; then
     cat << 'EOF' >> "$HOME/.zshrc"
 
 # --- Power FZF Previewer ---
 alias fzf="fzf --preview 'printf \"\033[2J\033_Gi=1,a=d\033\\\\\"; mime=\$(file --mime-type -b {}); if [[ \$mime == image/* ]]; then chafa -s 50x30 {}; else bat --color=always --style=numbers {} 2>/dev/null || cat {}; fi'"
+
+# --- Quick Dotfile Sync ---
+alias dotsync="git -C $HOME/Downloads/shared pull --rebase && git -C $HOME/Downloads/shared add . && git -C $HOME/Downloads/shared commit -m 'Update configs' && git -C $HOME/Downloads/shared push"
 EOF
 fi
 
@@ -92,16 +95,20 @@ if ! command -v ghostty >/dev/null; then
 fi
 
 # 7. Symlink Logic for Dotfiles Repo
-# If this script is run from a git repo, link the local config to the system paths
-REPO_DIR="$(pwd)"
+# Hardcoded to your shared directory for portability
+REPO_DIR="$HOME/Downloads/shared"
+GHOSTTY_TARGET="$HOME/.config/ghostty/config"
+
 if [ -d "$REPO_DIR/.git" ]; then
-    echo -e "${BLUE}Git repo detected. Establishing symlinks...${NC}"
-    
-    # Symlink Ghostty Config
+    echo -e "${BLUE}Git repo detected at $REPO_DIR. Establishing symlinks...${NC}"
     mkdir -p "$HOME/.config/ghostty"
+    
+    # Ensure target is a symlink, not a real file
+    [ -f "$GHOSTTY_TARGET" ] && [ ! -L "$GHOSTTY_TARGET" ] && rm "$GHOSTTY_TARGET"
+
     if [ -f "$REPO_DIR/ghostty_config" ]; then
-        ln -sf "$REPO_DIR/ghostty_config" "$HOME/.config/ghostty/config"
-        echo "Linked ghostty_config -> ~/.config/ghostty/config"
+        ln -sf "$REPO_DIR/ghostty_config" "$GHOSTTY_TARGET"
+        echo "Linked ghostty_config -> $GHOSTTY_TARGET"
     else
         # Fallback: Create initial config in repo if it doesn't exist
         cat << 'EOF' > "$REPO_DIR/ghostty_config"
@@ -109,17 +116,21 @@ font-family = "MesloLGS NF"
 window-decoration = true
 background-opacity = 0.85
 background-blur-radius = 20
+window-width = 140
+window-height = 40
 EOF
-        ln -sf "$REPO_DIR/ghostty_config" "$HOME/.config/ghostty/config"
+        ln -sf "$REPO_DIR/ghostty_config" "$GHOSTTY_TARGET"
     fi
 else
     # Non-repo fallback: Create config directly
     mkdir -p ~/.config/ghostty
-    cat << 'EOF' > ~/.config/ghostty/config
+    cat << 'EOF' > "$GHOSTTY_TARGET"
 font-family = "MesloLGS NF"
 window-decoration = true
 background-opacity = 0.85
 background-blur-radius = 20
+window-width = 140
+window-height = 40
 EOF
 fi
 
