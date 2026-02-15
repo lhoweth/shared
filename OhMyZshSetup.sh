@@ -75,7 +75,7 @@ if ! grep -q "alias dotsync=" "$HOME/.zshrc"; then
 alias fzf="fzf --preview 'printf \"\033[2J\033_Gi=1,a=d\033\\\\\"; mime=\$(file --mime-type -b {}); if [[ \$mime == image/* ]]; then chafa -s 50x30 {}; else bat --color=always --style=numbers {} 2>/dev/null || cat {}; fi'"
 
 # --- Quick Dotfile Sync ---
-alias dotsync="git -C $HOME/Downloads/shared pull --rebase && git -C $HOME/Downloads/shared add . && git -C $HOME/Downloads/shared commit -m 'Update configs' && git -C $HOME/Downloads/shared push"
+alias dotsync="git -C $HOME/Downloads/shared add . && git -C $HOME/Downloads/shared commit -m 'Update configs' && git -C $HOME/Downloads/shared pull --rebase && git -C $HOME/Downloads/shared push"
 EOF
 fi
 
@@ -135,5 +135,3 @@ EOF
 fi
 
 echo -e "${GREEN}Setup Complete!${NC}"
-echo "Note: Ensure you are using Meslo Nerd Font (or similar) for Agnoster symbols."
-
