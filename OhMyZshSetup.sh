@@ -7,6 +7,19 @@ NC='\033[0m'
 
 echo -e "${BLUE}==> Initiating High-Performance Terminal Setup...${NC}"
 
+# 0. Pre-Flight: GitHub Authentication
+if ! command -v gh >/dev/null; then
+    echo "GitHub CLI (gh) not found. Installing..."
+    if [[ "$OSTYPE" == "darwin"* ]]; then brew install gh; else sudo apt-get update && sudo apt-get install -y gh; fi
+fi
+
+if ! gh auth status >/dev/null 2>&1; then
+    echo -e "${BLUE}==> Authenticating with GitHub...${NC}"
+    gh auth login
+else
+    echo -e "${GREEN}==> GitHub Authenticated.${NC}"
+fi
+
 # 1. Dependency Installer (fzf, bat, chafa, file)
 install_pkg() {
     if command -v brew >/dev/null; then brew install "$@";
@@ -32,7 +45,6 @@ ZSH_CUSTOM_PLUGINS="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins"
 PLUGINS=(
     "zsh-autosuggestions|https://github.com/zsh-users/zsh-autosuggestions"
     "zsh-syntax-highlighting|https://github.com/zsh-users/zsh-syntax-highlighting"
-    "zsh-completions|https://github.com/zsh-users/zsh-completions"
 )
 
 for item in "${PLUGINS[@]}"; do
@@ -64,8 +76,8 @@ echo -e "${GREEN}Applying configuration surgery...${NC}"
 sed -i '' 's/^ZSH_THEME=".*"/ZSH_THEME="agnoster"/' "$HOME/.zshrc" 2>/dev/null || \
 sed -i 's/^ZSH_THEME=".*"/ZSH_THEME="agnoster"/' "$HOME/.zshrc"
 
-sed -i '' 's/^plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting zsh-completions)/' "$HOME/.zshrc" 2>/dev/null || \
-sed -i 's/^plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting zsh-completions)/' "$HOME/.zshrc"
+sed -i '' 's/^plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting)/' "$HOME/.zshrc" 2>/dev/null || \
+sed -i 's/^plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting)/' "$HOME/.zshrc"
 
 # 5. Injecting the Working FZF Alias & Git Sync Alias
 if ! grep -q "alias dotsync=" "$HOME/.zshrc"; then
@@ -103,8 +115,10 @@ if [ -d "$REPO_DIR/.git" ]; then
     echo -e "${BLUE}Git repo detected at $REPO_DIR. Establishing symlinks...${NC}"
     mkdir -p "$HOME/.config/ghostty"
     
-    # Ensure target is a symlink, not a real file
-    [ -f "$GHOSTTY_TARGET" ] && [ ! -L "$GHOSTTY_TARGET" ] && rm "$GHOSTTY_TARGET"
+    # If a real file exists, back it up before replacing with a symlink
+    if [ -f "$GHOSTTY_TARGET" ] && [ ! -L "$GHOSTTY_TARGET" ]; then
+        mv "$GHOSTTY_TARGET" "${GHOSTTY_TARGET}.bak"
+    fi
 
     if [ -f "$REPO_DIR/ghostty_config" ]; then
         ln -sf "$REPO_DIR/ghostty_config" "$GHOSTTY_TARGET"
@@ -135,3 +149,5 @@ EOF
 fi
 
 echo -e "${GREEN}Setup Complete!${NC}"
+echo "Note: Ensure you are using Meslo Nerd Font (or similar) for Agnoster symbols."
+
