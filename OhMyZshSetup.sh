@@ -7,7 +7,7 @@ NC='\033[0m'
 
 echo -e "${BLUE}==> Initiating High-Performance Terminal Setup...${NC}"
 
-# 0. Pre-Flight: GitHub Authentication
+# 0. Pre-Flight: GitHub & Git Identity
 if ! command -v gh >/dev/null; then
     echo "GitHub CLI (gh) not found. Installing..."
     if [[ "$OSTYPE" == "darwin"* ]]; then brew install gh; else sudo apt-get update && sudo apt-get install -y gh; fi
@@ -18,6 +18,16 @@ if ! gh auth status >/dev/null 2>&1; then
     gh auth login
 else
     echo -e "${GREEN}==> GitHub Authenticated.${NC}"
+fi
+
+# Set Git Identity if not present
+CURRENT_GIT_EMAIL=$(git config --global user.email)
+if [ -z "$CURRENT_GIT_EMAIL" ]; then
+    read -p "Enter your Git email [lhoweth@hotmail.com]: " GIT_EMAIL
+    GIT_EMAIL=${GIT_EMAIL:-lhoweth@hotmail.com}
+    git config --global user.email "$GIT_EMAIL"
+    git config --global user.name "Lee Howeth"
+    echo -e "${GREEN}==> Git identity set to $GIT_EMAIL${NC}"
 fi
 
 # 1. Dependency Installer (fzf, bat, chafa, file)
